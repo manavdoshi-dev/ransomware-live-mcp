@@ -1,0 +1,9 @@
+{
+  "_comment": "Drop this block into the mcpServers section of your Claude Desktop config. On Windows: %APPDATA%\\Claude\\claude_desktop_config.json — on macOS: ~/Library/Application Support/Claude/claude_desktop_config.json.",
+  "mcpServers": {
+    "ransomware-live": {
+      "command": "uvx",
+      "args": ["--from", "C:\\Users\\mdosh\\projects\\ransomware-live-mcp", "ransomware-live-mcp"]
+    }
+  }
+}
