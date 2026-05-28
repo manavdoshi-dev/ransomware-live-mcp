@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from types import SimpleNamespace
+from datetime import datetime
 
 import pytest
 
@@ -10,10 +10,37 @@ from ransomware_live_mcp import analytics
 
 
 class FakeClient:
+    """Mimics the upstream API: /v2/victims/{year} and /v2/victims/{year}/{month}
+    return only the records matching that bucket."""
+
     def __init__(self, records: list[dict]) -> None:
         self._records = records
 
+    @staticmethod
+    def _dt(record: dict) -> datetime | None:
+        raw = record.get("attackdate") or record.get("discovered")
+        if not raw:
+            return None
+        try:
+            return datetime.fromisoformat(raw.replace("Z", "+00:00"))
+        except ValueError:
+            return None
+
     async def get(self, path: str):
+        parts = path.strip("/").split("/")
+        # /v2/victims/{year} or /v2/victims/{year}/{month}
+        if len(parts) >= 3 and parts[0] == "v2" and parts[1] == "victims":
+            year = int(parts[2])
+            month = int(parts[3]) if len(parts) >= 4 else None
+            out = []
+            for r in self._records:
+                dt = self._dt(r)
+                if not dt or dt.year != year:
+                    continue
+                if month is not None and dt.month != month:
+                    continue
+                out.append(r)
+            return out
         return self._records
 
 
